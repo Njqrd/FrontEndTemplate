@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 
 interface ContributionData {
   name: string;
@@ -24,28 +24,45 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+const CustomYAxisTick = ({ y, payload }: any) => {
+  const value = payload.value as string;
+  // Adjust the x offset as needed
+  const xOffset = 95;
+  const yOffset = 4; // Vertical alignment
+  
+  return (
+    <g transform={`translate(0,${y})`}>
+      <text x={xOffset} y={yOffset} textAnchor="end" fill="#666" fontSize={10}>
+        {value}
+      </text>
+    </g>
+  );
+};
+
 const ContributionChart: React.FC<ContributionChartProps> = ({ data, title }) => {
   return (
-    <div className="flex-1 bg-gray-50 p-2 rounded">
-      <h3 className="text-center mb-2 text-sm text-gray-600 bg-gray-300 p-1 rounded">{title}</h3>
-      <div style={{ width: '100%', height: 220 }}>
+    <div className="flex-1 bg-gray-50 py-1 px-2 rounded">
+      <h3 className="text-center mb-1 text-xs text-gray-600 bg-gray-300 p-1 rounded">{title}</h3>
+      <div style={{ width: '100%', height: 110 }}>
         <ResponsiveContainer>
           <BarChart
             layout="vertical"
             data={data}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            margin={{ top: 0, right: 30, left: 20, bottom: 0 }}
           >
-            <XAxis type="number" hide />
+            <XAxis type="number" hide domain={['auto', 'auto']} />
             <YAxis 
               dataKey="name" 
               type="category" 
               axisLine={false} 
               tickLine={false}
               width={100}
-              tick={{ fontSize: 12 }}
+              tick={<CustomYAxisTick />}
+              interval={0}
             />
             <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}}/>
-            <Bar dataKey="value" barSize={16} radius={[4, 4, 4, 4]}>
+            <ReferenceLine x={0} stroke="#666" strokeDasharray="2 2" />
+            <Bar dataKey="value" barSize={10} radius={[4, 4, 4, 4]}>
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
