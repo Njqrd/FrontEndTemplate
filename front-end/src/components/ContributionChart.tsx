@@ -41,8 +41,8 @@ const CustomYAxisTick = ({ y, payload }: any) => {
 
 const ContributionChart: React.FC<ContributionChartProps> = ({ data, title }) => {
   return (
-    <div className="flex-1 bg-gray-50 py-1 px-2 rounded">
-      <h3 className="text-center mb-1 text-xs text-gray-600 bg-gray-300 p-1 rounded">{title}</h3>
+    <div className="flex-1 py-1 px-2 rounded">
+      <h3 className="text-center mb-1 text-xs text-gray-600 p-1 rounded">{title}</h3>
       <div style={{ width: '100%', height: 110 }}>
         <ResponsiveContainer>
           <BarChart
