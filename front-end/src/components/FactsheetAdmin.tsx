@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseAdmin } from '../lib/supabaseAdmin';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
@@ -35,6 +35,13 @@ interface Contribution {
 
 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+const getBlankStats = (): PerformanceStat[] => {
+  const seriesNames = ['Sodefi Fund Lead Series*', 'Reference Index 70/30'];
+  return seriesNames.map(name => ({
+      series_name: name, one_month_return: null, three_month_return: null, six_month_return: null, twelve_month_return: null, ytd_return: null, cagr_since_inception: null, sharpe_ratio: null, ann_volatility: null, worst_monthly_return: null, max_drawdown: null
+  }));
+};
+
 const FactsheetAdmin = () => {
   const [factsheets, setFactsheets] = useState<FactsheetVersion[]>([]);
   const [selectedFactsheetId, setSelectedFactsheetId] = useState<string | null>(null);
@@ -45,7 +52,7 @@ const FactsheetAdmin = () => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [commentary, setCommentary] = useState('');
-  const [performanceStats, setPerformanceStats] = useState<PerformanceStat[]>([]);
+  const [performanceStats, setPerformanceStats] = useState<PerformanceStat[]>(getBlankStats);
   const [contributions, setContributions] = useState<Contribution[]>([]);
 
   // State for the new monthly return form
@@ -54,6 +61,7 @@ const FactsheetAdmin = () => {
 
   // State for the save confirmation modal
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
@@ -69,7 +77,7 @@ const FactsheetAdmin = () => {
       const date = new Date(Date.UTC(year, month, 0));
       const dateString = date.toISOString().split('T')[0];
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('monthly_returns')
         .select('sodefi_return, reference_return')
         .eq('date', dateString)
@@ -108,7 +116,7 @@ const FactsheetAdmin = () => {
       const date = new Date(Date.UTC(year, month, 0));
       const dateString = date.toISOString().split('T')[0];
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('monthly_returns')
         .select('sodefi_return, reference_return')
         .eq('date', dateString)
@@ -131,7 +139,7 @@ const FactsheetAdmin = () => {
     const loadData = async () => {
       if (selectedFactsheetId) {
         setIsLoading(true);
-        const { data: version, error: versionError } = await supabase.from('factsheet_versions').select('*').eq('id', selectedFactsheetId).single();
+        const { data: version, error: versionError } = await supabaseAdmin.from('factsheet_versions').select('*').eq('id', selectedFactsheetId).single();
         
         if (versionError) {
           setError('Could not load factsheet data.');
@@ -141,9 +149,9 @@ const FactsheetAdmin = () => {
 
         setYear(version.year);
         setMonth(version.month);
-        setCommentary(version.commentary || '');
+        setCommentary(version.commentary ? version.commentary.replace(/\\n/g, '\n') : '');
 
-        const { data: statsData } = await supabase.from('factsheet_performance_stats').select('*').eq('factsheet_id', selectedFactsheetId);
+        const { data: statsData } = await supabaseAdmin.from('factsheet_performance_stats').select('*').eq('factsheet_id', selectedFactsheetId);
         const stats = statsData || [];
         const seriesNames = ['Sodefi Fund Lead Series*', 'Reference Index 70/30'];
 
@@ -155,7 +163,7 @@ const FactsheetAdmin = () => {
         });
         setPerformanceStats(processedStats);
         
-        const { data: contribs } = await supabase.from('factsheet_contribution').select('*').eq('factsheet_id', selectedFactsheetId);
+        const { data: contribs } = await supabaseAdmin.from('factsheet_contribution').select('*').eq('factsheet_id', selectedFactsheetId);
         setContributions(contribs || []);
         setIsLoading(false);
       }
@@ -177,7 +185,7 @@ const FactsheetAdmin = () => {
 
   const fetchFactsheets = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('factsheet_versions')
       .select('*')
       .order('year', { ascending: false })
@@ -227,10 +235,7 @@ const FactsheetAdmin = () => {
     setYear(new Date().getFullYear());
     setMonth(new Date().getMonth() + 1);
     setCommentary('');
-    setPerformanceStats([
-      { series_name: 'Sodefi Fund Lead Series*', one_month_return: null, three_month_return: null, six_month_return: null, twelve_month_return: null, ytd_return: null, cagr_since_inception: null, sharpe_ratio: null, ann_volatility: null, worst_monthly_return: null, max_drawdown: null },
-      { series_name: 'Reference Index 70/30', one_month_return: null, three_month_return: null, six_month_return: null, twelve_month_return: null, ytd_return: null, cagr_since_inception: null, sharpe_ratio: null, ann_volatility: null, worst_monthly_return: null, max_drawdown: null },
-    ]);
+    setPerformanceStats(getBlankStats());
     setContributions([]);
   };
 
@@ -239,10 +244,12 @@ const FactsheetAdmin = () => {
 
     let factsheetId = selectedFactsheetId;
 
+    const commentaryToSave = commentary.replace(/\n/g, '\\n');
+
     // Upsert version
-    const { data: version, error: versionError } = await supabase
+    const { data: version, error: versionError } = await supabaseAdmin
       .from('factsheet_versions')
-      .upsert({ id: selectedFactsheetId || undefined, year, month, commentary })
+      .upsert({ id: selectedFactsheetId || undefined, year, month, commentary: commentaryToSave })
       .select()
       .single();
 
@@ -253,26 +260,43 @@ const FactsheetAdmin = () => {
     }
     factsheetId = version.id;
 
-    await Promise.all([
-      supabase.from('factsheet_performance_stats').delete().eq('factsheet_id', factsheetId),
-      supabase.from('factsheet_contribution').delete().eq('factsheet_id', factsheetId),
-    ]);
+    // 1. Delete existing related data first and wait for it to complete.
+    await supabaseAdmin.from('factsheet_performance_stats').delete().eq('factsheet_id', factsheetId);
+    await supabaseAdmin.from('factsheet_contribution').delete().eq('factsheet_id', factsheetId);
+
+    // 2. Prepare the new records for insertion.
+    // We remove the 'id' property from existing items to ensure they are treated as new records.
+    const newStats = performanceStats.map(({ id, ...rest }) => ({ ...rest, factsheet_id: factsheetId }));
+    const newContributions = contributions.map(({ id, ...rest }) => ({ ...rest, factsheet_id: factsheetId }));
     
-    const upsertPromises = [
-      supabase.from('factsheet_performance_stats').upsert(performanceStats.map(s => ({...s, id: undefined, factsheet_id: factsheetId}))),
-      supabase.from('factsheet_contribution').upsert(contributions.map(c => ({...c, id: undefined, factsheet_id: factsheetId}))),
-    ];
+    const insertPromises = [];
+    if (newStats.length > 0) {
+      insertPromises.push(supabaseAdmin.from('factsheet_performance_stats').insert(newStats));
+    }
+    if (newContributions.length > 0) {
+      insertPromises.push(supabaseAdmin.from('factsheet_contribution').insert(newContributions));
+    }
 
     if (newSodefiReturn !== '' && newReferenceReturn !== '') {
       const dateString = new Date(Date.UTC(year, month, 0)).toISOString().split('T')[0];
       const sodefi_return = parseFloat(newSodefiReturn) / 100;
       const reference_return = parseFloat(newReferenceReturn) / 100;
-      upsertPromises.push(
-        supabase.from('monthly_returns').upsert({ date: dateString, sodefi_return, reference_return }, { onConflict: 'date' })
+      insertPromises.push(
+        supabaseAdmin.from('monthly_returns').upsert({ date: dateString, sodefi_return, reference_return }, { onConflict: 'date' })
       );
     }
 
-    await Promise.all(upsertPromises);
+    // 3. Execute all insertion promises.
+    const results = await Promise.all(insertPromises);
+
+    // Check for errors in any of the insertion operations
+    for (const result of results) {
+        if (result.error) {
+            setError(`Failed to save data: ${result.error.message}`);
+            setIsLoading(false);
+            return;
+        }
+    }
     
     setIsLoading(false);
     fetchFactsheets();
@@ -293,11 +317,20 @@ const FactsheetAdmin = () => {
   };
 
   const handleDelete = async () => {
+    if (passwordInput !== 'S@defi') {
+      alert('Incorrect password. Delete operation cancelled.');
+      setPasswordInput('');
+      setIsDeleteModalOpen(false);
+      return;
+    }
+    
+    setPasswordInput('');
+    setIsDeleteModalOpen(false);
+    
     if (!selectedFactsheetId) return;
-    if (!window.confirm('Are you sure you want to delete this factsheet? This action cannot be undone.')) return;
     
     setIsLoading(true);
-    const { error } = await supabase.from('factsheet_versions').delete().eq('id', selectedFactsheetId);
+    const { error } = await supabaseAdmin.from('factsheet_versions').delete().eq('id', selectedFactsheetId);
     if (error) {
         setError('Failed to delete factsheet.');
     } else {
@@ -310,11 +343,7 @@ const FactsheetAdmin = () => {
 
   const clearFormFields = () => {
     setCommentary('');
-    const seriesNames = ['Sodefi Fund Lead Series*', 'Reference Index 70/30'];
-    const blankStats = seriesNames.map(name => ({
-        series_name: name, one_month_return: null, three_month_return: null, six_month_return: null, twelve_month_return: null, ytd_return: null, cagr_since_inception: null, sharpe_ratio: null, ann_volatility: null, worst_monthly_return: null, max_drawdown: null
-    }));
-    setPerformanceStats(blankStats);
+    setPerformanceStats(getBlankStats());
     setContributions([]);
   };
 
@@ -335,6 +364,15 @@ const FactsheetAdmin = () => {
     clearFormFields();
   };
 
+  const groupedFactsheets = factsheets.reduce((acc, fs) => {
+    const year = fs.year;
+    if (!acc[year]) {
+      acc[year] = [];
+    }
+    acc[year].push(fs);
+    return acc;
+  }, {} as Record<number, FactsheetVersion[]>);
+
   return (
     <div className="p-8 font-sans">
       <h1 className="text-3xl font-bold mb-6">Factsheet Admin Panel</h1>
@@ -348,13 +386,20 @@ const FactsheetAdmin = () => {
             <div className="max-h-96 overflow-y-auto border rounded">
               {isLoading && <p>Loading...</p>}
               <ul>
-                {factsheets.map(fs => (
-                  <li
-                    key={fs.id}
-                    onClick={() => setSelectedFactsheetId(fs.id)}
-                    className={`p-2 cursor-pointer hover:bg-gray-200 ${selectedFactsheetId === fs.id ? 'bg-blue-200' : ''}`}
-                  >
-                    {fs.year} - {monthNames[fs.month - 1]}
+                {Object.keys(groupedFactsheets).sort((a, b) => Number(b) - Number(a)).map(year => (
+                  <li key={year}>
+                    <h3 className="font-bold p-2 bg-gray-100">{year}</h3>
+                    <ul>
+                      {[...groupedFactsheets[Number(year)]].sort((a, b) => a.month - b.month).map(fs => (
+                        <li
+                          key={fs.id}
+                          onClick={() => setSelectedFactsheetId(fs.id)}
+                          className={`p-2 pl-4 cursor-pointer hover:bg-gray-200 ${selectedFactsheetId === fs.id ? 'bg-blue-200' : ''}`}
+                        >
+                          {monthNames[fs.month - 1]}
+                        </li>
+                      ))}
+                    </ul>
                   </li>
                 ))}
               </ul>
@@ -431,7 +476,7 @@ const FactsheetAdmin = () => {
 
             <div className="flex justify-end gap-4">
               {selectedFactsheetId && (
-                <Button type="button" onClick={handleDelete} variant="destructive">Delete</Button>
+                <Button type="button" onClick={() => setIsDeleteModalOpen(true)} variant="destructive">Delete</Button>
               )}
               <Button type="submit" disabled={isLoading} className="border border-gray-400">
                 {isLoading ? 'Saving...' : 'Save Factsheet'}
@@ -462,6 +507,30 @@ const FactsheetAdmin = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsSaveModalOpen(false)}>Cancel</Button>
             <Button onClick={handleConfirmSave}>Confirm Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="solid-background">
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. Please enter the password to delete the factsheet.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input 
+              type="password"
+              placeholder="Password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleDelete()}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleDelete} variant="destructive">Confirm Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

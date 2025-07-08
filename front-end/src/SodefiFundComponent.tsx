@@ -158,6 +158,13 @@ const SodefiFundComponent = () => {
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const factsheetDate = selectedYear && selectedMonth ? `${monthNames[selectedMonth - 1]} ${selectedYear}` : '';
   
+  const commentaryEndDate = selectedYear && selectedMonth 
+    ? new Date(selectedYear, selectedMonth, 0)
+    : null;
+    
+  const formattedCommentaryEndDate = commentaryEndDate 
+    ? `${monthNames[commentaryEndDate.getMonth()]} ${commentaryEndDate.getDate()}, ${commentaryEndDate.getFullYear()}`
+    : '';
 
   const sodefiStats = factsheetData?.performanceStats.find(s => s.series_name.startsWith('Sodefi'));
   const referenceStats = factsheetData?.performanceStats.find(s => s.series_name.startsWith('Reference'));
@@ -200,15 +207,15 @@ const SodefiFundComponent = () => {
   );
 
   const PageFooter = () => (
-    <div className="mt-auto pt-2">
-      <div className="px-4">
+    <div className="mt-auto pt-0">
+      <div className="px-0">
         <img 
-          src="/Banner.png" 
+          src="/banner.jpg" 
           alt="Sodefi Banner" 
           className="w-full h-auto"
         />
       </div>
-      <div className="px-3 py-[0.375rem] mt-2 bg-amber-800 text-white text-center">
+      <div className="px-3 py-[0.375rem] mt-0 bg-amber-800 text-white text-center">
         <p className="my-[0.125rem] text-xs">Sodefi Management BV - www.sodefi.nl - gerardrum@sodefi.nl</p>
         <p className="my-[0.125rem] text-xs">Amsterdamseweg 206 - 1182 HL Amstelveen - The Netherlands</p>
       </div>
@@ -342,10 +349,9 @@ const SodefiFundComponent = () => {
                   <p className="text-sm leading-relaxed text-left">
                     <strong>The Sodefi Fund is an absolute return fund that invests primarily in quality European and US stocks together with a 30% allocation to a Trend Following futures strategy. Domiciled in the Netherlands, the fund's objective is to generate above average returns and focuses on mitigation of large drawdowns.</strong>
                   </p>
-                  <hr />
                 </div>
                 
-                <hr className="border-none border-t-2 border-brand-text my-2" />
+                <hr className="border-t-1 border-brand-text my-2" />
                 
                 <div className="flex justify-start gap-4 mb-2">
                   {/* --- Combined Table --- */}
@@ -435,7 +441,7 @@ const SodefiFundComponent = () => {
                                     const dateStr = payload.value as string;
                                     
                                     const parts = dateStr?.split(' ');
-                                    if (!parts || parts.length < 2) return null;
+                                    if (!parts || parts.length < 2) return <g />;
 
                                     const [month, yearStr] = parts;
                                     const currentYear = parseInt(yearStr, 10);
@@ -460,7 +466,7 @@ const SodefiFundComponent = () => {
                                           </g>
                                       );
                                     }
-                                    return null;
+                                    return <g />;
                                 }}
                                 stroke="#6b7280"
                                 axisLine={{ stroke: '#6b7280', strokeWidth: 1 }}
@@ -640,7 +646,9 @@ const SodefiFundComponent = () => {
                     <ContributionChart title="EU Portfolio" data={euPortfolioData} />
                     <ContributionChart title="Managed Futures" data={managedFuturesData} />
                   </div>
-                  <p className="text-center text-[10px] text-gray-600 mt-[0.125rem] italic">*US = Consumer Non-Cyclical + Consumer Non-Cyclical</p>
+                  <p className="text-center text-[10px] text-gray-600 mt-[0.125rem] italic">*C.N.C = Consumer Non Cyclical</p>
+                  <p className="text-center text-[10px] text-gray-600 mt-[0.1rem] italic">*C.C = Consumer Cyclical</p>
+                  
                 </div>
               </div>
               <PageFooter />
@@ -658,7 +666,7 @@ const SodefiFundComponent = () => {
                     </p>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-8 text-base leading-relaxed text-left">
+                  <div className="grid grid-cols-2 gap-8 text-sm leading-relaxed text-left">
                     <div className="space-y-4">
                       {commentaryParagraphs.slice(0, 4).map((p, i) => <p key={i} className="mb-3">{p}</p>)}
                     </div>
@@ -670,7 +678,7 @@ const SodefiFundComponent = () => {
                   
                   <div className="mt-8 p-4">
                     <p className="text-sm italic text-left">
-                      This commentary reflects the views of Sodefi Management BV as of March 31, 2025. Past performance does not guarantee future results. 
+                      This commentary reflects the views of Sodefi Management BV as of {formattedCommentaryEndDate}. Past performance does not guarantee future results. 
                       All investments carry risk of loss. Please refer to the fund's prospectus for complete risk disclosures.
                     </p>
                   </div>
@@ -682,28 +690,38 @@ const SodefiFundComponent = () => {
             <div id="page3" className="flex flex-col bg-brand-background text-brand-text">
               <PageHeader />
               <div className="p-4 flex-grow">
-                {/* Disclaimer - Always visible in two columns */}
+                <div className="px-2 py-1 mb-1">
+                  <p className="text-sm leading-relaxed text-left">
+                    <strong>The Sodefi Fund is an absolute return fund that invests primarily in quality European and US stocks together with a 30% allocation to a Trend Following futures strategy. The fund's objective is to generate above average returns and focuses on mitigation of large drawdowns.</strong>
+                  </p>
+                </div>
+                <hr className="border-t-1 border-brand-text my-2" />
+                {/* Disclaimer - Rewritten based on image */}
                 <div className="mt-2 p-4">
+                  <h3 className="text-lg font-bold mb-4 text-left">Investing involves risks.</h3>
                   <div className="grid grid-cols-2 gap-8 text-xs leading-relaxed text-left">
                     <div className="space-y-2">
+                      <ul className="list-disc list-inside space-y-2">
+                        <li>The value of your investment will fluctuate over time, and you may gain or lose money, including loss of principle.</li>
+                        <li>Past performance is not a guarantee of future return, nor is it necessarily indicative of future performance.</li>
+                        <li>Diversification and rebalancing of a portfolio cannot assure a profit or protect against a loss in any given market environment.</li>
+                      </ul>
+                      <hr className="border-t-1 border-brand-text my-4 pt-2" />
                       <p>
                         The information provided here is for general informational purpose only and should not be considered an individualized recommendation or personalized investment advice. The investment strategies mentioned here may not be suitable for everyone. Each investor needs to review an investment strategy for his or her own particular situation before making any investment decision.
                       </p>
                       <p>
                         Indexes are unmanaged, do not incur management fees, costs and expenses, and cannot be invested in directly. This document is provided to you on a confidential basis for your information and discussion only. It is not a solicitation or an offer to buy or sell any security or other financial instrument.
                       </p>
-                      <p>
+                       <p>
                         Any information including facts, opinions or quotations, may be condensed or summarized and is expressed as of the date of writing. The information may change without notice and Sodefi Management BV (Sodefi) is under no obligation to ensure that such updates are brought to your attention.
-                      </p>
-                      <p>
-                        The information available within this document may be restricted in certain other jurisdictions. Not all products and services are available in all geographic areas, and an investor's eligibility to such products and services is subject to the local laws and regulations affecting the investor. Accordingly, persons who use this information are required by Sodefi to inform themselves about and observe the restrictions placed on them by their local laws and regulations.
-                      </p>
-                      <p>
-                        The price and value of investments mentioned and any income that might accrue could fall or rise or fluctuate. Past performance is not a guide to future performance. If an investment is denominated in a currency other than the base currency, changes in the rate of exchange may have an adverse effect on value, price or income.
                       </p>
                     </div>
                     
                     <div className="space-y-2">
+                      <p>
+                        The price and value of investments mentioned and any income that might accrue could fall or rise or fluctuate. Past performance is not a guide to future performance. If an investment is denominated in a currency other than the base currency, changes in the rate of exchange may have an adverse effect on value, price or income.
+                      </p>
                       <p>
                         This document and any related recommendations or strategies may not be suitable for you; you should ensure that you fully understand the potential risks and rewards and independently determine that it is suitable for your given objectives, experience, financial resources and any other relevant circumstances.
                       </p>
@@ -712,12 +730,6 @@ const SodefiFundComponent = () => {
                       </p>
                       <p>
                         This material is for the exclusive use of the person to whom it has been delivered, is confidential, and may not be copied, distributed, or otherwise given or disclosed to any person. This material is not meant to be, nor shall it be construed as, an attempt to define all terms and conditions of any transaction or to contain all information that is, or maybe, material to an investor.
-                      </p>
-                      <p>
-                        Sodefi is not soliciting any action based upon this material, and this material is not meant to be, nor shall it be construed as, an offer or solicitation of an offer for the purchase or sale of any security or advisory or other service. If in the future any security or services is offered or sold, such offer or sale shall occur only pursuant to, and a decision to invest therein should be made solely on the basis of, a definitive prospectus, and shall be made exclusively to qualified investors in a private offering exempt from registration under all applicable securities and other laws.
-                      </p>
-                      <p>
-                        Any such prospectus shall contain material information not contained herein, and shall supplement, amend, and/or supersede in its entirety the information referred to herein. This document is made available to persons who would fall within the definition of a Professional Client or Eligible Counterparty.
                       </p>
                     </div>
                   </div>
