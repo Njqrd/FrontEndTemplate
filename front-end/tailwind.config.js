@@ -6,7 +6,7 @@ module.exports = {
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
-  ],
+	],
   prefix: "",
   theme: {
     container: {
@@ -21,8 +21,14 @@ module.exports = {
         sans: ['Aller', 'sans-serif'],
       },
       colors: {
-        'brand-background': '#F0F0E3',
-        'brand-text': '#004459',
+        'brand-background': '#f5f4eb',
+        'brand-header-text': '#928254',
+        'brand-main-text': '#004156',
+        'brand-subheading': '#6f0039',
+        'brand-positive': '#928254',
+        'brand-negative': '#004156', // User requested #004156 for negative bars
+        'brand-graph-bg': '#dfddbd',
+        'brand-footer-bg': '#928254',
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -61,6 +67,20 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0px" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0px" },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
   },
