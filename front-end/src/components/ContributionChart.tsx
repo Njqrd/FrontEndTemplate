@@ -62,7 +62,7 @@ const ContributionChart: React.FC<ContributionChartProps> = ({ data, title }) =>
             />
             <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}}/>
             <ReferenceLine x={0} stroke="#666" strokeDasharray="2 2" />
-            <Bar dataKey="value" barSize={10} radius={[4, 4, 4, 4]}>
+            <Bar dataKey="value" barSize={10} radius={[1, 1, 1, 1]}>
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
