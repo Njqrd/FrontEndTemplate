@@ -196,7 +196,7 @@ const SodefiFundComponent = () => {
     <div className="bg-white">
       <header className="flex justify-between items-center px-14 py-5">
         <div>
-          <img src="/SodefiFundLogo.png" alt="Sodefi Fund Logo" className="w-64" />
+          <img src="/SodefiFundLogo.png" alt="Sodefi Fund Logo" className="w-56" style={{ marginLeft: '-25px' }} />
         </div>
         <div className="text-right">
           <div className="text-[15pt] font-bold text-brand-header-text mb-1">Sodefi Fund: EUR Class</div>
@@ -216,9 +216,9 @@ const SodefiFundComponent = () => {
         />
       </div>
       
-        <div className="bg-brand-footer-bg text-white text-left text-left items-center px-14 py-4" style={{height: '100%'}}>
-          <p className="text-[9pt] font-light">Sodefi Management BV - www.sodefi.nl - gerardrump@sodefi.nl</p>
-          <p className="text-[9pt] font-light">Amsterdamseweg 206 - 1182 HL Amstelveen - The Netherlands</p>
+        <div className="bg-brand-footer-bg text-white text-left text-left items-center px-14 py-4" style={{height: '80%'}}>
+          <p className="text-[10pt] font-light">Sodefi Management BV - www.sodefi.nl - gerardrump@sodefi.nl</p>
+          <p className="text-[10pt] font-light">Amsterdamseweg 206 - 1182 HL Amstelveen - The Netherlands</p>
    
       </div>
     </div>
@@ -363,58 +363,58 @@ const SodefiFundComponent = () => {
               <PageHeader />
               <div className="px-14 py-2 flex-grow">
                 {/* Factsheet Content */}
-                <div className="px-2 py-0 mb-1">
+                <div className="px-0 py-0 mb-1">
                   <p className="text-[9pt] leading-relaxed text-left">
                     <strong className="font-bold">The Sodefi Fund is an absolute return fund that invests primarily in quality European and US stocks together with a 30% allocation to a Trend Following futures strategy. Domiciled in the Netherlands, the fund's objective is to generate above average returns and focuses on mitigation of large drawdowns.</strong>
                   </p>
                 </div>
                 
-                <hr className="border-t-1 border-brand-main-text my-2" />
+                <hr className="border-t-1 border-brand-main-text my-4" />
                 
                 <div className="flex justify-start gap-4 mb-0">
                   {/* --- Combined Table --- */}
                   <div className="w-full">
-                    <table className="w-full text-[9pt] border-2 border-brand-main-text border-collapse table-fixed">
-                      <thead className="font-bold border-b-2 border-brand-main-text">
+                    <table className="w-full text-[9pt] border border-brand-main-text border-collapse table-fixed">
+                      <thead className="font-bold border-b border-brand-main-text">
                         <tr>
-                          <th className="w-[11%] text-[8pt] px-1 py-2 text-brand-subheading border-r-2 border-brand-main-text text-center align-middle">Performance</th>
-                          <th className="w-[8%] px-0.5 py-0 text-brand-subheading border-r-2 border-brand-main-text text-center align-middle">1M</th>
-                          <th className="w-[8%] px-0.5 py-0 text-brand-subheading border-r-2 border-brand-main-text text-center align-middle">3M</th>
-                          <th className="w-[8%] px-0.5 py-0 text-brand-subheading border-r-2 border-brand-main-text text-center align-middle">6M</th>
-                          <th className="w-[9%] px-0.5 py-0 text-brand-subheading border-r-2 border-brand-main-text text-center align-middle">12M</th>
-                          <th className="w-[9%] px-0.5 py-0 text-brand-subheading border-r-2 border-brand-main-text text-center align-middle">YTD</th>
-                          <th className="w-[10%] px-0.5 py-2 text-brand-subheading border-r-2 border-brand-main-text text-[7pt] text-center align-middle"><div>CAGR<br />since<br />Inception**</div></th>
-                          <th className="w-[10%] px-0.5 py-2 text-brand-subheading border-r-2 border-brand-main-text text-[7pt] text-center align-middle"><div>Ann.<br />volatility-<br />36 Month</div></th>
-                          <th className="w-[10%] px-0.5 py-2 text-brand-subheading border-r-2 border-brand-main-text text-[7pt] text-center align-middle"><div>Worst<br />Monthly<br />Return</div></th>
-                          <th className="w-[10%] px-0.5 py-2 text-brand-subheading border-r-2 border-brand-main-text text-[7pt] text-center align-middle"><div>Max<br />Drawdown</div></th>
+                          <th className="w-[11%] text-[8pt] px-1 py-2 text-brand-subheading border-r border-brand-main-text text-center align-middle">Performance</th>
+                          <th className="w-[8%] px-0.5 py-0 text-brand-subheading border-r border-brand-main-text text-center align-middle">1M</th>
+                          <th className="w-[8%] px-0.5 py-0 text-brand-subheading border-r border-brand-main-text text-center align-middle">3M</th>
+                          <th className="w-[8%] px-0.5 py-0 text-brand-subheading border-r border-brand-main-text text-center align-middle">6M</th>
+                          <th className="w-[9%] px-0.5 py-0 text-brand-subheading border-r border-brand-main-text text-center align-middle">12M</th>
+                          <th className="w-[9%] px-0.5 py-0 text-brand-subheading border-r border-brand-main-text text-center align-middle">YTD</th>
+                          <th className="w-[10%] px-0.5 py-2 text-brand-subheading border-r border-brand-main-text text-[7pt] text-center align-middle"><div>CAGR<br />since<br />Inception**</div></th>
+                          <th className="w-[10%] px-0.5 py-2 text-brand-subheading border-r border-brand-main-text text-[7pt] text-center align-middle"><div>Ann.<br />volatility-<br />36 Month</div></th>
+                          <th className="w-[10%] px-0.5 py-2 text-brand-subheading border-r border-brand-main-text text-[7pt] text-center align-middle"><div>Worst<br />Monthly<br />Return</div></th>
+                          <th className="w-[10%] px-0.5 py-2 text-brand-subheading border-r border-brand-main-text text-[7pt] text-center align-middle"><div>Max<br />Drawdown</div></th>
                           <th className="w-[9%] px-0.5 py-2 text-brand-subheading text-[7pt] text-center align-middle"><div>Sharpe<br />Ratio</div></th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr className="border-b-2 border-brand-main-text">
-                          <td className="px-1 py-2 font-bold border-r-2 border-brand-main-text text-[7pt] text-center align-middle"><div>Sodefi Fund<br />Lead Series*</div></td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{sodefiStats?.one_month_return != null ? `${sodefiStats.one_month_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{sodefiStats?.three_month_return != null ? `${sodefiStats.three_month_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{sodefiStats?.six_month_return != null ? `${sodefiStats.six_month_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{sodefiStats?.twelve_month_return != null ? `${sodefiStats.twelve_month_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{sodefiStats?.ytd_return != null ? `${sodefiStats.ytd_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{sodefiStats?.cagr_since_inception != null ? `${sodefiStats.cagr_since_inception}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{sodefiStats?.ann_volatility != null ? `${sodefiStats.ann_volatility}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{sodefiStats?.worst_monthly_return != null ? `${sodefiStats.worst_monthly_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{sodefiStats?.max_drawdown != null ? `${sodefiStats.max_drawdown}%` : ''}</td>
+                        <tr className="border-b border-brand-main-text">
+                          <td className="px-1 py-2 font-bold border-r border-brand-main-text text-[7pt] text-center align-middle"><div>Sodefi Fund<br />Lead Series*</div></td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{sodefiStats?.one_month_return != null ? `${sodefiStats.one_month_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{sodefiStats?.three_month_return != null ? `${sodefiStats.three_month_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{sodefiStats?.six_month_return != null ? `${sodefiStats.six_month_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{sodefiStats?.twelve_month_return != null ? `${sodefiStats.twelve_month_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{sodefiStats?.ytd_return != null ? `${sodefiStats.ytd_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{sodefiStats?.cagr_since_inception != null ? `${sodefiStats.cagr_since_inception}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{sodefiStats?.ann_volatility != null ? `${sodefiStats.ann_volatility}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{sodefiStats?.worst_monthly_return != null ? `${sodefiStats.worst_monthly_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{sodefiStats?.max_drawdown != null ? `${sodefiStats.max_drawdown}%` : ''}</td>
                           <td className="px-0.5 py-1.5 text-brand-main-text text-center align-middle">{sodefiStats?.sharpe_ratio}</td>
                         </tr>
                         <tr>
-                          <td className="px-1 py-2 font-bold border-r-2 border-brand-main-text text-[7pt] text-center align-middle"><div>Reference<br />Index 70/30</div></td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{referenceStats?.one_month_return != null ? `${referenceStats.one_month_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{referenceStats?.three_month_return != null ? `${referenceStats.three_month_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{referenceStats?.six_month_return != null ? `${referenceStats.six_month_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{referenceStats?.twelve_month_return != null ? `${referenceStats.twelve_month_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{referenceStats?.ytd_return != null ? `${referenceStats.ytd_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{referenceStats?.cagr_since_inception != null ? `${referenceStats.cagr_since_inception}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{referenceStats?.ann_volatility != null ? `${referenceStats.ann_volatility}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{referenceStats?.worst_monthly_return != null ? `${referenceStats.worst_monthly_return}%` : ''}</td>
-                          <td className="px-0.5 py-1.5 text-brand-main-text border-r-2 border-brand-main-text text-center align-middle">{referenceStats?.max_drawdown != null ? `${referenceStats.max_drawdown}%` : ''}</td>
+                          <td className="px-1 py-2 font-bold border-r border-brand-main-text text-[7pt] text-center align-middle"><div>Reference<br />Index 70/30</div></td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{referenceStats?.one_month_return != null ? `${referenceStats.one_month_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{referenceStats?.three_month_return != null ? `${referenceStats.three_month_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{referenceStats?.six_month_return != null ? `${referenceStats.six_month_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{referenceStats?.twelve_month_return != null ? `${referenceStats.twelve_month_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{referenceStats?.ytd_return != null ? `${referenceStats.ytd_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{referenceStats?.cagr_since_inception != null ? `${referenceStats.cagr_since_inception}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{referenceStats?.ann_volatility != null ? `${referenceStats.ann_volatility}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{referenceStats?.worst_monthly_return != null ? `${referenceStats.worst_monthly_return}%` : ''}</td>
+                          <td className="px-0.5 py-1.5 text-brand-main-text border-r border-brand-main-text text-center align-middle">{referenceStats?.max_drawdown != null ? `${referenceStats.max_drawdown}%` : ''}</td>
                           <td className="px-0.5 py-1.5 text-brand-main-text text-center align-middle">{referenceStats?.sharpe_ratio}</td>
                         </tr>
                       </tbody>
@@ -431,7 +431,7 @@ const SodefiFundComponent = () => {
                   <div className="flex gap-4">
                     <div className="w-1/2 flex flex-col">
                       <h2 className="text-[16pt] font-bold mb-4 text-left text-brand-subheading">Performance</h2>
-                      <div className="border-2 border-gray-400 bg-brand-graph-bg">
+                      <div className="bg-brand-graph-bg">
                         {/* Legend Above Chart */}
                         <div 
                           className="p-1 text-center"
@@ -677,7 +677,7 @@ const SodefiFundComponent = () => {
               <div className="px-14 py-4 flex-grow">
                 {/* Monthly Commentary Section */}
                 <div className="mt-4">
-                  <div className="px-2 mb-4 text-center">
+                  <div className="mb-4 text-left">
                     <h1 className="text-[20pt] font-bold mb-2 text-brand-subheading">Monthly Commentary - {factsheetDate}</h1>
                     <p className="text-xs italic">
                       Sodefi Fund: EUR Class Performance Review and Market Outlook
@@ -694,8 +694,8 @@ const SodefiFundComponent = () => {
                     </div>
                   </div>
                   
-                  <div className="mt-8 p-4">
-                    <p className="text-xs italic text-left">
+                  <div className="mt-8 py-4 text-left">
+                    <p className="text-xs italic">
                       This commentary reflects the views of Sodefi Management BV as of {formattedCommentaryEndDate}. Past performance does not guarantee future results. 
                       All investments carry risk of loss. Please refer to the fund's prospectus for complete risk disclosures.
                     </p>
@@ -708,12 +708,12 @@ const SodefiFundComponent = () => {
             <div id="page3" className="flex flex-col text-brand-main-text">
               <PageHeader />
               <div className="px-14 py-2 flex-grow">
-                <div className="px-2 py-1 mb-2">
-                  <p className="text-[9pt] leading-relaxed text-left">
+                <div className="px-0 py-1 mb-2">
+                  <p className="text-[9pt] leading-relaxed text-left w-full">
                     <strong className="font-bold">The Sodefi Fund is an absolute return fund that invests primarily in quality European and US stocks together with a 30% allocation to a Trend Following futures strategy. The fund's objective is to generate above average returns and focuses on mitigation of large drawdowns.</strong>
                   </p>
                 </div>
-                <hr className="border-t-1 border-brand-main-text my-2" />
+                <hr className="border-t-1 border-brand-main-text my-2 " style={{ marginTop: '25px' }} />
                 {/* Disclaimer - Rewritten based on image */}
                 <div className="mt-4 p-0">
                   <h3 className="text-[20pt] font-bold mb-4 text-left text-brand-subheading">Investing involves risks.</h3>
