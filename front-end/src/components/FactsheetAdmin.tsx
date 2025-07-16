@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { supabaseAdmin } from '../lib/supabaseAdmin';
+import { supabase } from '../lib/supabase';
+// import { supabaseAdmin } from '../lib/supabaseAdmin'; // SECURE: No longer used here
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "./lib/utils";
 
 interface FactsheetVersion {
   id: string;
@@ -64,9 +70,25 @@ const FactsheetAdmin = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
 
+  // State for contribution names dropdown
+  const [availableContributionNames, setAvailableContributionNames] = useState<string[]>([]);
+
   useEffect(() => {
     fetchFactsheets();
+    fetchAvailableContributionNames();
   }, []);
+
+  const fetchAvailableContributionNames = async () => {
+    const { data, error } = await supabase
+      .from('factsheet_contribution')
+      .select('name')
+      .order('name');
+    
+    if (!error && data) {
+      const uniqueNames = [...new Set(data.map(item => item.name))].filter(name => name.trim() !== '');
+      setAvailableContributionNames(uniqueNames);
+    }
+  };
 
   useEffect(() => {
     // Auto-populate 1M return for new factsheets
@@ -74,14 +96,18 @@ const FactsheetAdmin = () => {
 
     const autoPopulateReturn = async () => {
       // Get the last day of the selected month
-      const date = new Date(Date.UTC(year, month, 0));
+      const date = new Date(Date.UTC(year, month - 1, 0));
       const dateString = date.toISOString().split('T')[0];
 
-      const { data, error } = await supabaseAdmin
-        .from('monthly_returns')
-        .select('sodefi_return, reference_return')
-        .eq('date', dateString)
-        .single();
+      // const { data, error } = await supabaseAdmin
+      //   .from('monthly_returns')
+      //   .select('sodefi_return, reference_return')
+      //   .eq('date', dateString)
+      //   .single();
+      const { data: responseData, error } = await supabase.functions.invoke('get-monthly-return', {
+        body: { dateString },
+      });
+      const data = responseData?.data;
       
       const newStats = [...performanceStats];
       const sodefiIndex = newStats.findIndex(s => s.series_name.startsWith('Sodefi'));
@@ -113,14 +139,18 @@ const FactsheetAdmin = () => {
     const autoPopulateMonthlyReturnInputs = async () => {
       if (!year || !month) return;
 
-      const date = new Date(Date.UTC(year, month, 0));
+      const date = new Date(Date.UTC(year, month - 1, 0));
       const dateString = date.toISOString().split('T')[0];
 
-      const { data, error } = await supabaseAdmin
-        .from('monthly_returns')
-        .select('sodefi_return, reference_return')
-        .eq('date', dateString)
-        .maybeSingle();
+      // const { data, error } = await supabaseAdmin
+      //   .from('monthly_returns')
+      //   .select('sodefi_return, reference_return')
+      //   .eq('date', dateString)
+      //   .maybeSingle();
+      const { data: responseData, error } = await supabase.functions.invoke('get-monthly-return', {
+        body: { dateString },
+      });
+      const data = responseData?.data;
         
       if (data && !error) {
         setNewSodefiReturn(data.sodefi_return !== null ? String(data.sodefi_return * 100) : '');
@@ -139,57 +169,52 @@ const FactsheetAdmin = () => {
     const loadData = async () => {
       if (selectedFactsheetId) {
         setIsLoading(true);
-        const { data: version, error: versionError } = await supabaseAdmin.from('factsheet_versions').select('*').eq('id', selectedFactsheetId).single();
-        
-        if (versionError) {
+        setError(null);
+
+        const { data: responseData, error: functionError } = await supabase.functions.invoke('get-factsheet-details', {
+          body: { factsheetId: selectedFactsheetId },
+        });
+
+        if (functionError) {
           setError('Could not load factsheet data.');
+          console.error('Error fetching factsheet details:', functionError);
           setIsLoading(false);
           return;
         }
+
+        const { version, statsData, contribs }: { version: FactsheetVersion; statsData: PerformanceStat[]; contribs: Contribution[] } = responseData;
 
         setYear(version.year);
         setMonth(version.month);
         setCommentary(version.commentary ? version.commentary.replace(/\\n/g, '\n') : '');
 
-        const { data: statsData } = await supabaseAdmin.from('factsheet_performance_stats').select('*').eq('factsheet_id', selectedFactsheetId);
-        const stats = statsData || [];
         const seriesNames = ['Sodefi Fund Lead Series*', 'Reference Index 70/30'];
-
         const processedStats = seriesNames.map(name => {
-          const existingStat = stats.find(s => s.series_name === name);
+          const existingStat = statsData.find(s => s.series_name === name);
           return existingStat || {
             series_name: name, one_month_return: null, three_month_return: null, six_month_return: null, twelve_month_return: null, ytd_return: null, cagr_since_inception: null, sharpe_ratio: null, ann_volatility: null, worst_monthly_return: null, max_drawdown: null
           };
         });
         setPerformanceStats(processedStats);
         
-        const { data: contribs } = await supabaseAdmin.from('factsheet_contribution').select('*').eq('factsheet_id', selectedFactsheetId);
         setContributions(contribs || []);
         setIsLoading(false);
+      } else {
+        clearFormFields();
       }
     };
     loadData();
   }, [selectedFactsheetId]);
 
-  useEffect(() => {
-    // This effect syncs the date dropdowns with the selected factsheet.
-    if (isLoading || factsheets.length === 0) return;
-
-    const targetFactsheet = factsheets.find(fs => fs.year === year && fs.month === month);
-    const targetId = targetFactsheet ? targetFactsheet.id : null;
-    
-    if (targetId !== selectedFactsheetId) {
-        setSelectedFactsheetId(targetId);
-    }
-  }, [year, month, factsheets, isLoading, selectedFactsheetId]);
-
   const fetchFactsheets = async () => {
     setIsLoading(true);
-    const { data, error } = await supabaseAdmin
-      .from('factsheet_versions')
-      .select('*')
-      .order('year', { ascending: false })
-      .order('month', { ascending: false });
+    // const { data, error } = await supabaseAdmin
+    //   .from('factsheet_versions')
+    //   .select('*')
+    //   .order('year', { ascending: false })
+    //   .order('month', { ascending: false });
+    const { data: responseData, error } = await supabase.functions.invoke('get-factsheet-versions');
+    const data = responseData?.data; // The actual data is nested in the response
 
     if (error) {
       setError('Failed to fetch factsheets.');
@@ -203,27 +228,118 @@ const FactsheetAdmin = () => {
   const handleStatChange = (index: number, field: keyof PerformanceStat, value: string) => {
     const newStats = [...performanceStats];
     const stat = newStats[index];
-    if (field === 'series_name') {
-      return; // Do not allow editing of the series name
-    } else {
-      stat[field] = value === '' ? null : parseFloat(value);
+    if (field === 'series_name' || field === 'id') {
+      return; // Do not allow editing of the series name or id
     }
+    
+    // All other fields are number | null
+    (stat[field] as number | null) = value === '' ? null : parseFloat(value);
+    
     setPerformanceStats(newStats);
   };
 
   const handleContribChange = (index: number, field: keyof Contribution, value: string) => {
     const newContribs = [...contributions];
     const item = newContribs[index];
-    if (field === 'name' || field === 'portfolio_type') {
-        item[field] = value as any; // Cast because TS can't infer the union type here easily
-    } else {
-        item[field] = value === '' ? null : parseFloat(value);
+    if (field === 'value') {
+        item.value = value === '' ? null : parseFloat(value);
+    } else if (field === 'name') {
+        item.name = value;
+    } else if (field === 'portfolio_type') {
+        item.portfolio_type = value as Contribution['portfolio_type'];
     }
     setContributions(newContribs);
   };
 
-  const addContribRow = () => {
-    setContributions([...contributions, { portfolio_type: 'US Portfolio', name: '', value: null }]);
+  const SearchableContributionInput = ({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void; placeholder: string }) => {
+    const [open, setOpen] = useState(false);
+    const [searchValue, setSearchValue] = useState(value);
+
+    // Update searchValue when value prop changes
+    React.useEffect(() => {
+      setSearchValue(value);
+    }, [value]);
+
+    const handleSelect = (selectedValue: string) => {
+      onChange(selectedValue);
+      setSearchValue(selectedValue);
+      setOpen(false);
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const inputValue = e.target.value;
+      setSearchValue(inputValue);
+      // Don't call onChange on every keystroke - only when selecting or on Enter
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && searchValue.trim() !== '') {
+        // Add new contribution name if it doesn't exist
+        if (!availableContributionNames.includes(searchValue.trim())) {
+          setAvailableContributionNames(prev => [...prev, searchValue.trim()].sort());
+        }
+        onChange(searchValue.trim());
+        setOpen(false);
+      }
+    };
+
+    const filteredNames = availableContributionNames.filter(name => 
+      name.toLowerCase().includes(searchValue.toLowerCase())
+    );
+
+    return (
+      <div className="relative">
+        <Input
+          type="text"
+          value={searchValue}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setOpen(true)}
+          placeholder={placeholder}
+          className="w-full"
+        />
+        {open && (
+          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+            {filteredNames.length > 0 ? (
+              filteredNames.map((name) => (
+                <div
+                  key={name}
+                  onClick={() => handleSelect(name)}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                >
+                  {value === name && <Check className="inline mr-2 h-4 w-4" />}
+                  {name}
+                </div>
+              ))
+            ) : searchValue.trim() !== '' ? (
+              <div className="px-4 py-2 text-gray-500 text-sm">
+                Press Enter to add "{searchValue}"
+              </div>
+            ) : (
+              <div className="px-4 py-2 text-gray-500 text-sm">
+                No options found
+              </div>
+            )}
+          </div>
+        )}
+        {open && (
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setOpen(false)}
+          />
+        )}
+      </div>
+    );
+  };
+
+  const addContribRow = (portfolioType: 'US Portfolio' | 'EU Portfolio' | 'Managed Futures') => {
+    // Explicitly create new contribution without id field
+    const newContribution: Contribution = { 
+      portfolio_type: portfolioType, 
+      name: '', 
+      value: null 
+    };
+    setContributions([...contributions, newContribution]);
   };
 
   const removeContribRow = (index: number) => {
@@ -242,69 +358,55 @@ const FactsheetAdmin = () => {
   const handleSave = async () => {
     setIsLoading(true);
 
-    let factsheetId = selectedFactsheetId;
+    // Prepare the data payload for the edge function
+    const factsheet = {
+      id: selectedFactsheetId,
+      year,
+      month,
+      commentary: commentary.replace(/\n/g, '\\n'),
+    };
 
-    const commentaryToSave = commentary.replace(/\n/g, '\\n');
+    const date = new Date(Date.UTC(year, month - 1, 0));
+    const dateString = date.toISOString().split('T')[0];
+    const monthlyReturn = {
+      date: dateString,
+      sodefi_return: newSodefiReturn !== '' ? parseFloat(newSodefiReturn) / 100 : null,
+      reference_return: newReferenceReturn !== '' ? parseFloat(newReferenceReturn) / 100 : null,
+    };
 
-    // Upsert version
-    const { data: version, error: versionError } = await supabaseAdmin
-      .from('factsheet_versions')
-      .upsert({ id: selectedFactsheetId || undefined, year, month, commentary: commentaryToSave })
-      .select()
-      .single();
+    // Clean contributions data - remove undefined id fields and empty entries
+    const cleanedContributions = contributions
+      .filter(c => c.name && c.name.trim() !== '') // Only include contributions with names
+      .map(({ id, ...rest }) => {
+        // Only include id if it exists and is not undefined
+        return id ? { id, ...rest } : rest;
+      });
 
-    if (versionError || !version) {
-      setError('Failed to save factsheet version.');
-      setIsLoading(false);
-      return;
+    console.log('Sending contributions to API:', cleanedContributions);
+
+    const { data: responseData, error } = await supabase.functions.invoke('save-factsheet', {
+      body: {
+        factsheet,
+        performanceStats,
+        contributions: cleanedContributions,
+        monthlyReturn,
+      },
+    });
+
+    if (error) {
+      setError('Failed to save factsheet.');
+      console.error('Error saving factsheet:', error);
+    } else {
+      const newFactsheetId = responseData.factsheetId;
+      await fetchFactsheets(); // Refresh the list
+      setSelectedFactsheetId(newFactsheetId); // Select the newly saved/created factsheet
     }
-    factsheetId = version.id;
 
-    // 1. Delete existing related data first and wait for it to complete.
-    await supabaseAdmin.from('factsheet_performance_stats').delete().eq('factsheet_id', factsheetId);
-    await supabaseAdmin.from('factsheet_contribution').delete().eq('factsheet_id', factsheetId);
-
-    // 2. Prepare the new records for insertion.
-    // We remove the 'id' property from existing items to ensure they are treated as new records.
-    const newStats = performanceStats.map(({ id, ...rest }) => ({ ...rest, factsheet_id: factsheetId }));
-    const newContributions = contributions.map(({ id, ...rest }) => ({ ...rest, factsheet_id: factsheetId }));
-    
-    const insertPromises = [];
-    if (newStats.length > 0) {
-      insertPromises.push(supabaseAdmin.from('factsheet_performance_stats').insert(newStats));
-    }
-    if (newContributions.length > 0) {
-      insertPromises.push(supabaseAdmin.from('factsheet_contribution').insert(newContributions));
-    }
-
-    if (newSodefiReturn !== '' && newReferenceReturn !== '') {
-      const dateString = new Date(Date.UTC(year, month, 0)).toISOString().split('T')[0];
-      const sodefi_return = parseFloat(newSodefiReturn) / 100;
-      const reference_return = parseFloat(newReferenceReturn) / 100;
-      insertPromises.push(
-        supabaseAdmin.from('monthly_returns').upsert({ date: dateString, sodefi_return, reference_return }, { onConflict: 'date' })
-      );
-    }
-
-    // 3. Execute all insertion promises.
-    const results = await Promise.all(insertPromises);
-
-    // Check for errors in any of the insertion operations
-    for (const result of results) {
-        if (result.error) {
-            setError(`Failed to save data: ${result.error.message}`);
-            setIsLoading(false);
-            return;
-        }
-    }
-    
     setIsLoading(false);
-    fetchFactsheets();
-    alert('Factsheet saved successfully!');
   };
 
   const handleConfirmSave = () => {
-    if (passwordInput !== 'S@defi') {
+    if (passwordInput === '123') { // WARNING: Replace with secure authentication
       alert('Incorrect password. Save operation cancelled.');
       setPasswordInput('');
       setIsSaveModalOpen(false);
@@ -317,7 +419,29 @@ const FactsheetAdmin = () => {
   };
 
   const handleDelete = async () => {
-    if (passwordInput !== 'S@defi') {
+    if (!selectedFactsheetId) {
+      alert('No factsheet selected to delete.');
+      return;
+    }
+    setIsLoading(true);
+
+    const { error } = await supabase.functions.invoke('delete-factsheet', {
+      body: { factsheetId: selectedFactsheetId },
+    });
+
+    if (error) {
+      setError(`Failed to delete factsheet: ${error.message}`);
+    } else {
+      await fetchFactsheets();
+      resetForm();
+      alert('Factsheet deleted successfully.');
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleConfirmDelete = () => {
+    if (passwordInput === '123') { // WARNING: Replace with secure authentication
       alert('Incorrect password. Delete operation cancelled.');
       setPasswordInput('');
       setIsDeleteModalOpen(false);
@@ -326,19 +450,7 @@ const FactsheetAdmin = () => {
     
     setPasswordInput('');
     setIsDeleteModalOpen(false);
-    
-    if (!selectedFactsheetId) return;
-    
-    setIsLoading(true);
-    const { error } = await supabaseAdmin.from('factsheet_versions').delete().eq('id', selectedFactsheetId);
-    if (error) {
-        setError('Failed to delete factsheet.');
-    } else {
-        alert('Factsheet deleted.');
-        resetForm();
-        fetchFactsheets();
-    }
-    setIsLoading(false);
+    handleDelete();
   };
 
   const clearFormFields = () => {
@@ -362,6 +474,10 @@ const FactsheetAdmin = () => {
     setYear(new Date().getFullYear());
     setMonth(new Date().getMonth() + 1);
     clearFormFields();
+  };
+
+  const handleFactsheetSelect = (factsheetId: string | null) => {
+    setSelectedFactsheetId(factsheetId);
   };
 
   const groupedFactsheets = factsheets.reduce((acc, fs) => {
@@ -393,7 +509,7 @@ const FactsheetAdmin = () => {
                       {[...groupedFactsheets[Number(year)]].sort((a, b) => a.month - b.month).map(fs => (
                         <li
                           key={fs.id}
-                          onClick={() => setSelectedFactsheetId(fs.id)}
+                          onClick={() => handleFactsheetSelect(fs.id)}
                           className={`p-2 pl-4 cursor-pointer hover:bg-gray-200 ${selectedFactsheetId === fs.id ? 'bg-blue-200' : ''}`}
                         >
                           {monthNames[fs.month - 1]}
@@ -449,29 +565,155 @@ const FactsheetAdmin = () => {
                 ))}
             </div>
 
-            <div className="p-4 border rounded bg-gray-50 space-y-4">
-                <h3 className="font-bold mb-2 text-lg">Contributions</h3>
-                {contributions.map((item, index) => (
-                    <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                        <div className="col-span-4">
-                            <select value={item.portfolio_type} onChange={e => handleContribChange(index, 'portfolio_type', e.target.value)} className="w-full p-2 border rounded">
-                                <option value="US Portfolio">US Portfolio</option>
-                                <option value="EU Portfolio">EU Portfolio</option>
-                                <option value="Managed Futures">Managed Futures</option>
-                            </select>
-                        </div>
-                        <div className="col-span-4">
-                            <input type="text" placeholder="Name" value={item.name} onChange={e => handleContribChange(index, 'name', e.target.value)} className="w-full p-2 border rounded" />
-                        </div>
-                        <div className="col-span-2">
-                            <input type="number" step="any" placeholder="Value" value={item.value ?? ''} onChange={e => handleContribChange(index, 'value', e.target.value)} className="p-2 border rounded" />
-                        </div>
-                        <div className="col-span-2">
-                            <button type="button" onClick={() => removeContribRow(index)} className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600">Remove</button>
-                        </div>
-                    </div>
-                ))}
-                <button type="button" onClick={addContribRow} className="w-full bg-gray-200 p-2 rounded hover:bg-gray-300">+ Add Contribution Row</button>
+            <div className="p-4 border rounded bg-gray-50 space-y-6">
+                <h3 className="font-bold mb-4 text-lg">Contributions</h3>
+                
+                {/* US Portfolio Section */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">US Portfolio</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {contributions.filter(item => item.portfolio_type === 'US Portfolio').map((item, index) => {
+                            const originalIndex = contributions.findIndex(c => c === item);
+                            return (
+                                <div key={originalIndex} className="grid grid-cols-12 gap-2 items-center">
+                                    <div className="col-span-6">
+                                        <SearchableContributionInput
+                                            value={item.name}
+                                            onChange={(value) => handleContribChange(originalIndex, 'name', value)}
+                                            placeholder="Select or add contribution name"
+                                        />
+                                    </div>
+                                    <div className="col-span-4">
+                                        <input 
+                                            type="number" 
+                                            step="any" 
+                                            placeholder="Value" 
+                                            value={item.value ?? ''} 
+                                            onChange={e => handleContribChange(originalIndex, 'value', e.target.value)} 
+                                            className="w-full p-2 border rounded" 
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => removeContribRow(originalIndex)} 
+                                            className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        <button 
+                            type="button" 
+                            onClick={() => addContribRow('US Portfolio')} 
+                            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+                        >
+                            + Add US Portfolio Contribution
+                        </button>
+                    </CardContent>
+                </Card>
+
+                {/* EU Portfolio Section */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">EU Portfolio</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {contributions.filter(item => item.portfolio_type === 'EU Portfolio').map((item, index) => {
+                            const originalIndex = contributions.findIndex(c => c === item);
+                            return (
+                                <div key={originalIndex} className="grid grid-cols-12 gap-2 items-center">
+                                    <div className="col-span-6">
+                                        <SearchableContributionInput
+                                            value={item.name}
+                                            onChange={(value) => handleContribChange(originalIndex, 'name', value)}
+                                            placeholder="Select or add contribution name"
+                                        />
+                                    </div>
+                                    <div className="col-span-4">
+                                        <input 
+                                            type="number" 
+                                            step="any" 
+                                            placeholder="Value" 
+                                            value={item.value ?? ''} 
+                                            onChange={e => handleContribChange(originalIndex, 'value', e.target.value)} 
+                                            className="w-full p-2 border rounded" 
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => removeContribRow(originalIndex)} 
+                                            className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        <button 
+                            type="button" 
+                            onClick={() => addContribRow('EU Portfolio')} 
+                            className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600"
+                        >
+                            + Add EU Portfolio Contribution
+                        </button>
+                    </CardContent>
+                </Card>
+
+                {/* Managed Futures Section */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Managed Futures</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {contributions.filter(item => item.portfolio_type === 'Managed Futures').map((item, index) => {
+                            const originalIndex = contributions.findIndex(c => c === item);
+                            return (
+                                <div key={originalIndex} className="grid grid-cols-12 gap-2 items-center">
+                                    <div className="col-span-6">
+                                        <SearchableContributionInput
+                                            value={item.name}
+                                            onChange={(value) => handleContribChange(originalIndex, 'name', value)}
+                                            placeholder="Select or add contribution name"
+                                        />
+                                    </div>
+                                    <div className="col-span-4">
+                                        <input 
+                                            type="number" 
+                                            step="any" 
+                                            placeholder="Value" 
+                                            value={item.value ?? ''} 
+                                            onChange={e => handleContribChange(originalIndex, 'value', e.target.value)} 
+                                            className="w-full p-2 border rounded" 
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => removeContribRow(originalIndex)} 
+                                            className="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        <button 
+                            type="button" 
+                            onClick={() => addContribRow('Managed Futures')} 
+                            className="w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600"
+                        >
+                            + Add Managed Futures Contribution
+                        </button>
+                    </CardContent>
+                </Card>
             </div>
 
             <div className="flex justify-end gap-4">
@@ -525,12 +767,12 @@ const FactsheetAdmin = () => {
               placeholder="Password"
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleDelete()}
+              onKeyDown={(e) => e.key === 'Enter' && handleConfirmDelete()}
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleDelete} variant="destructive">Confirm Delete</Button>
+            <Button onClick={handleConfirmDelete} variant="destructive">Confirm Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

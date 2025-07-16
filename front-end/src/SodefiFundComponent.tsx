@@ -181,7 +181,9 @@ const SodefiFundComponent = () => {
   
   const contributionFilter = (data: Contribution[] | undefined) => {
       if (!data) return [];
-      return data.filter(c => c.value !== null).map(c => ({...c, value: c.value as number}));
+      return data.filter(c => c.value !== null)
+                 .map(c => ({...c, value: c.value as number}))
+                 .sort((a, b) => b.value - a.value);
   };
 
   const usPortfolioData = contributionFilter(factsheetData?.contributions.filter(c => c.portfolio_type === 'US Portfolio'));
@@ -521,7 +523,7 @@ const SodefiFundComponent = () => {
                                   style: { textAnchor: 'middle', fontSize: '7.5pt', fill: '#374151' }
                                 }}
                               />
-                              <Tooltip 
+                              {/* <Tooltip 
                                 contentStyle={{ 
                                   backgroundColor: 'rgba(255, 255, 255, 0.9)', 
                                   border: '1px solid #d1d5db',
@@ -535,7 +537,7 @@ const SodefiFundComponent = () => {
                                   name
                                 ]}
                                 labelFormatter={(label) => `Date: ${label}`}
-                              />
+                              /> */}
                               <Line 
                                 type="monotone" 
                                 dataKey="sodefi" 
@@ -543,7 +545,7 @@ const SodefiFundComponent = () => {
                                 stroke="#004156" 
                                 strokeWidth={2}
                                 dot={false}
-                                activeDot={{ r: 4, fill: '#004156', stroke: '#004156', strokeWidth: 1 }}
+                                activeDot={false}
                               />
                               <Line 
                                 type="monotone" 
@@ -552,7 +554,7 @@ const SodefiFundComponent = () => {
                                 stroke="#928254" 
                                 strokeWidth={2}
                                 dot={false}
-                                activeDot={{ r: 4, fill: '#928254', stroke: '#928254', strokeWidth: 1 }}
+                                activeDot={false}
                               />
                             </LineChart>
                           </ResponsiveContainer>

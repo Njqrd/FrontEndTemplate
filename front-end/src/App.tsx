@@ -7,7 +7,7 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <nav className="bg-gray-800 text-white p-4">
+        {/* <nav className="bg-gray-800 text-white p-4">
           <ul className="flex space-x-4">
             <li>
               <Link to="/" className="hover:text-gray-300">Factsheet Viewer</Link>
@@ -16,7 +16,7 @@ function App() {
               <Link to="/admin" className="hover:text-gray-300">Admin Panel</Link>
             </li>
           </ul>
-        </nav>
+        </nav> */}
         <main>
           <Routes>
             <Route path="/" element={<SodefiFundComponent />} />
