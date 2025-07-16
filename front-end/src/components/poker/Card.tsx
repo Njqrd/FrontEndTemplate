@@ -1,7 +1,5 @@
 import { cn } from "@/utils/cn";
-
-type Suit = "hearts" | "diamonds" | "clubs" | "spades";
-type Rank = "A" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K";
+import { Suit, Rank } from "@/types";
 
 interface CardProps {
   suit: Suit;
@@ -10,15 +8,15 @@ interface CardProps {
   className?: string;
 }
 
-const suitSymbols = {
-  hearts: "♥",
-  diamonds: "♦",
-  clubs: "♣",
-  spades: "♠",
+const suitSymbols: { [key in Suit]: string } = {
+  H: "♥",
+  D: "♦",
+  C: "♣",
+  S: "♠",
 };
 
 const Card = ({ suit, rank, faceUp = false, className }: CardProps) => {
-  const suitColor = (suit === "hearts" || suit === "diamonds") ? "text-red-600" : "text-gray-800";
+  const suitColor = (suit === "H" || suit === "D") ? "text-red-600" : "text-gray-800";
 
   if (!faceUp) {
     return (

@@ -1,13 +1,14 @@
 import { Card, Suit, Rank } from '@/types';
 
-const SUITS: Suit[] = ['hearts', 'diamonds', 'clubs', 'spades'];
-const RANKS: Rank[] = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2'];
+const SUITS: Suit[] = ['H', 'D', 'C', 'S'];
+const RANKS: Rank[] = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
 
 const getCardValue = (rank: Rank): number => {
   if (rank === 'A') return 14;
   if (rank === 'K') return 13;
   if (rank === 'Q') return 12;
   if (rank === 'J') return 11;
+  if (rank === 'T') return 10;
   return parseInt(rank, 10);
 };
 
