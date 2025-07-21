@@ -33,6 +33,24 @@ const CardGrid = ({ requiredCards, title }: CardGridProps) => {
     return requiredCardSet.has(`${rank}${suit}`);
   };
   
+  // If no required cards, don't render the grid
+  if (requiredCards.length === 0) {
+    return null;
+  }
+  
+  // Find which ranks and suits have required cards
+  const ranksWithCards = new Set<Rank>();
+  const suitsWithCards = new Set<Suit>();
+  
+  requiredCards.forEach(card => {
+    ranksWithCards.add(card.rank);
+    suitsWithCards.add(card.suit);
+  });
+  
+  // Filter to only show ranks and suits that have required cards
+  const filteredRanks = ranks.filter(rank => ranksWithCards.has(rank));
+  const filteredSuits = suits.filter(suit => suitsWithCards.has(suit));
+  
   return (
     <div className="mt-3">
       {title && (
@@ -41,9 +59,9 @@ const CardGrid = ({ requiredCards, title }: CardGridProps) => {
       
       <div className="bg-slate-800 p-3 rounded-lg">
         {/* Header row with suits */}
-        <div className="grid grid-cols-5 gap-1 mb-1">
+        <div className="grid gap-1 mb-1" style={{ gridTemplateColumns: `auto ${filteredSuits.map(() => '2rem').join(' ')}` }}>
           <div className="w-8 h-6"></div> {/* Empty corner */}
-          {suits.map(suit => (
+          {filteredSuits.map(suit => (
             <div key={suit} className={`w-8 h-6 flex items-center justify-center text-sm font-bold ${suitColors[suit]}`}>
               {suitSymbols[suit]}
             </div>
@@ -51,15 +69,15 @@ const CardGrid = ({ requiredCards, title }: CardGridProps) => {
         </div>
         
         {/* Rank rows */}
-        {ranks.map(rank => (
-          <div key={rank} className="grid grid-cols-5 gap-1 mb-1">
+        {filteredRanks.map(rank => (
+          <div key={rank} className="grid gap-1 mb-1" style={{ gridTemplateColumns: `auto ${filteredSuits.map(() => '2rem').join(' ')}` }}>
             {/* Rank label */}
             <div className="w-8 h-6 flex items-center justify-center text-xs font-bold text-slate-400">
               {rank}
             </div>
             
             {/* Cards for this rank */}
-            {suits.map(suit => {
+            {filteredSuits.map(suit => {
               const isRequired = isCardRequired(rank, suit);
               return (
                 <div

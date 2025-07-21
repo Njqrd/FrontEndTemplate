@@ -1,7 +1,11 @@
 import PokerTable from '@/components/poker/PokerTable';
 import HandAnalysisPanel from '@/components/poker/HandAnalysisPanel';
+import { usePlayerManager } from '@/hooks/usePlayerManager';
 
 const TrainingPage = () => {
+  const playerManager = usePlayerManager();
+  const villainCount = playerManager.players.length - 1;
+
   return (
     <div className="h-full w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       {/* Background Pattern */}
@@ -13,15 +17,15 @@ const TrainingPage = () => {
       <div className="absolute inset-0 opacity-[0.02] bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
       
       {/* Main Content */}
-      <div className="relative z-10 h-screen flex gap-4 p-4 overflow-hidden">
+      <div className="relative z-10 h-screen flex gap-3 p-3 overflow-hidden">
         {/* Left Side - Poker Table (fixed height) */}
         <div className="flex-1 h-full">
-          <PokerTable />
+          <PokerTable playerManager={playerManager} />
         </div>
 
         {/* Right Side - Hand Analysis Panel (scrollable) */}
-        <div className="w-96 h-full flex-shrink-0">
-          <HandAnalysisPanel />
+        <div className="w-80 h-full flex-shrink-0">
+          <HandAnalysisPanel villainCount={villainCount > 0 ? villainCount : 1} />
         </div>
       </div>
 

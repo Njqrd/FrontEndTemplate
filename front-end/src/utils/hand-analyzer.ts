@@ -1,5 +1,6 @@
 import { Card, Suit, Rank } from '@/types';
-import { rankToValue, evaluateHand } from './hand-evaluator';
+import { rankToValue, evaluateHand, compareHands } from './hand-evaluator';
+import { createDeck } from './deck';
 
 export interface HandAnalysis {
   handType: string;
@@ -22,7 +23,7 @@ export interface AnalysisResult {
 
 // Helper function to get all cards of a specific suit
 const getCardsOfSuit = (suit: Suit): Card[] => {
-  const ranks: Rank[] = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+  const ranks: Rank[] = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2'];
   return ranks.map(rank => ({ suit, rank, value: rankToValue[rank] }));
 };
 
@@ -39,6 +40,43 @@ const removeUsedCards = (availableCards: Card[], usedCards: Card[]): Card[] => {
       used.suit === available.suit && used.rank === available.rank
     )
   );
+};
+
+// Helper to generate all unique two-card combinations from a deck
+const generateTwoCardCombinations = (deck: Card[]): Card[][] => {
+  const combinations: Card[][] = [];
+  for (let i = 0; i < deck.length; i++) {
+    for (let j = i + 1; j < deck.length; j++) {
+      combinations.push([deck[i], deck[j]]);
+    }
+  }
+  return combinations;
+};
+
+export const enumerateBeatingHands = (
+  heroHoleCards: Card[],
+  communityCards: Card[]
+): Card[][] => {
+  const beatingHands: Card[][] = [];
+  const fullDeck = createDeck();
+  const knownCards = [...heroHoleCards, ...communityCards];
+
+  const availableCards = removeUsedCards(fullDeck, knownCards);
+  const possibleOpponentHands = generateTwoCardCombinations(availableCards);
+
+  const heroHandEvaluated = evaluateHand(heroHoleCards, communityCards);
+
+  for (const opponentHand of possibleOpponentHands) {
+    const opponentHandEvaluated = evaluateHand(opponentHand, communityCards);
+    const comparisonResult = compareHands(opponentHandEvaluated, heroHandEvaluated);
+
+    // If opponentHand is stronger than heroHand
+    if (comparisonResult === 1) {
+      beatingHands.push(opponentHand);
+    }
+  }
+
+  return beatingHands;
 };
 
 // Analyze flush possibilities
@@ -901,6 +939,19 @@ const analyzeOpponentThreats = (holeCards: Card[], communityCards: Card[]): Hand
 
 // Main analysis function
 export const analyzeHands = (holeCards: Card[], communityCards: Card[]): AnalysisResult => {
+  // If the board is complete, only show the final hand (no draws or threats)
+  if (communityCards.length === 5) {
+    const currentPlayerHand = evaluateHand(holeCards, communityCards);
+    return {
+      playerAnalysis: [],
+      opponentThreats: [],
+      currentPlayerHand: {
+        type: currentPlayerHand.rankName,
+        strength: currentPlayerHand.rank
+      }
+    };
+  }
+
   const playerAnalysis: HandAnalysis[] = [];
   
   // Analyze straight flush possibilities (highest priority)

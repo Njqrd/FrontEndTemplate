@@ -8,9 +8,9 @@ const HomePage = () => {
       
       <h2 className="text-2xl font-bold mb-4">Card Examples</h2>
       <div className="flex space-x-4">
-        <Card suit="hearts" rank="A" faceUp />
-        <Card suit="spades" rank="K" faceUp />
-        <Card suit="clubs" rank="7" faceUp={false} />
+        <Card suit="H" rank="A" faceUp size="large" />
+        <Card suit="S" rank="K" faceUp size="large" />
+        <Card suit="C" rank="7" faceUp={false} size="large" />
       </div>
     </div>
   );

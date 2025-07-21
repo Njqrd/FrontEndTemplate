@@ -220,3 +220,29 @@ export const evaluateHand = (holeCards: Card[], communityCards: Card[]): Evaluat
     values: highCardHand.map(c => c.value),
   };
 }; 
+
+/**
+ * Compares two evaluated hands to determine the winner.
+ * @param hand1 The first evaluated hand
+ * @param hand2 The second evaluated hand
+ * @returns 1 if hand1 wins, 0 if tie, -1 if hand2 wins
+ */
+export const compareHands = (hand1: EvaluatedHand, hand2: EvaluatedHand): number => {
+  // Compare hand ranks first
+  if (hand1.rank !== hand2.rank) {
+    return hand1.rank > hand2.rank ? 1 : -1;
+  }
+  
+  // If ranks are equal, compare values
+  for (let i = 0; i < Math.max(hand1.values.length, hand2.values.length); i++) {
+    const value1 = hand1.values[i] || 0;
+    const value2 = hand2.values[i] || 0;
+    
+    if (value1 !== value2) {
+      return value1 > value2 ? 1 : -1;
+    }
+  }
+  
+  // If all values are equal, it's a tie
+  return 0;
+}; 

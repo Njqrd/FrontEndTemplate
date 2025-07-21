@@ -8,7 +8,7 @@ const RootLayout = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
       <Header />
-      <main className={isTrainingPage ? "flex-grow" : "container mx-auto p-4 flex-grow"}>
+      <main className={isTrainingPage ? "flex-grow" : "flex-grow w-full p-0"}>
         <Outlet />
       </main>
       {!isTrainingPage && (

@@ -1,0 +1,10 @@
+Our poker equity and threat solver is returning completely wrong results. For example, with AK on a board of 6s 8d Jd 9d 4s, it says we have 99.8% win equity and no hands beat us, when in reality, any pair, straight, flush, or even a random Jx, 9x, 8x, 6x, 4x, or any two diamonds beats us.
+
+Here’s what we need:
+- A utility to ensure all card strings are always two-character, lowercase, and match the deck exactly (e.g., 'as', 'td', not 'AS', '10d', etc.).
+- Logging of all hero, board, and opponent hands before evaluation.
+- Unit tests for common losing scenarios (AK high vs. random hand on a wet board).
+- A fix for the threat enumeration logic to actually enumerate all possible two-card hands for the opponent and check if they beat the hero, using only valid, non-duplicate cards.
+- Defensive programming: if any card is invalid, log and skip the calculation, or show an error in the UI.
+
+Please review the code and provide a robust, production-grade solution that will never silently fail or return obviously wrong results.

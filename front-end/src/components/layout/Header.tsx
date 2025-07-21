@@ -12,7 +12,14 @@ import {
 import { useGame } from "@/contexts/GameContext";
 
 const Header = () => {
-  const { playerStats } = useGame();
+  // Use optional chaining and provide fallback values
+  const gameContext = useGame();
+  const playerStats = gameContext?.playerStats || {
+    chips: 1000,
+    streak: 0,
+    correctAnswers: 0,
+    totalAnswered: 0
+  };
 
   return (
     <header className="bg-gray-900 text-white shadow-md">
@@ -25,27 +32,34 @@ const Header = () => {
         <nav className="hidden md:flex items-center space-x-6">
           <Link to="/" className="hover:text-blue-400 transition-colors">Home</Link>
           <Link to="/training" className="hover:text-blue-400 transition-colors">Training</Link>
+          <Link to="/sandbox" className="hover:text-blue-400 transition-colors">Sandbox</Link>
           <Link to="/profile" className="hover:text-blue-400 transition-colors">Profile</Link>
         </nav>
 
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Gem className="h-6 w-6 text-yellow-400" />
-            <span className="font-semibold">{playerStats.chips.toLocaleString()}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Flame className="h-6 w-6 text-red-500" />
-            <span className="font-semibold">{playerStats.streak}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Star className="h-6 w-6 text-green-400" />
-            <span className="font-semibold">Level 1</span>
+          {/* Player Stats */}
+          <div className="hidden md:flex items-center space-x-4">
+            <div className="flex items-center space-x-1">
+              <Gem className="h-4 w-4 text-emerald-400" />
+              <span className="text-sm font-medium">{playerStats.chips}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Flame className="h-4 w-4 text-orange-400" />
+              <span className="text-sm font-medium">{playerStats.streak}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Star className="h-4 w-4 text-yellow-400" />
+              <span className="text-sm font-medium">
+                {playerStats.totalAnswered > 0 ? Math.round((playerStats.correctAnswers / playerStats.totalAnswered) * 100) : 0}%
+              </span>
+            </div>
           </div>
 
+          {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <User className="h-6 w-6" />
+                <User className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -53,7 +67,7 @@ const Header = () => {
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">Player</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    player@example.com
+                    {playerStats.chips} chips
                   </p>
                 </div>
               </DropdownMenuLabel>

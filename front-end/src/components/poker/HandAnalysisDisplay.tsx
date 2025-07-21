@@ -1,9 +1,12 @@
 import { Card } from '@/types';
 import { analyzeHands, HandAnalysis, AnalysisResult } from '@/utils/hand-analyzer';
+import { findOpponentWinningHands } from '@/utils/hand-strength-analyzer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, Target, AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { CheckCircle, Target, AlertTriangle, ChevronDown, ChevronRight, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import CardGrid from './CardGrid';
+import MiniCard from './MiniCard';
+
 
 interface HandAnalysisDisplayProps {
   holeCards: Card[];
@@ -13,6 +16,19 @@ interface HandAnalysisDisplayProps {
 const HandAnalysisDisplay = ({ holeCards, communityCards }: HandAnalysisDisplayProps) => {
   const analysis: AnalysisResult = analyzeHands(holeCards, communityCards);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [opponentWinningHands, setOpponentWinningHands] = useState<string[][]>([]);
+
+  useEffect(() => {
+    if (communityCards.length === 5 && holeCards.length === 2) {
+      // Convert to lowercase for consistency
+      const heroCardStrings = holeCards.map(c => (c.rank + c.suit).toLowerCase());
+      const boardCardStrings = communityCards.map(c => (c.rank + c.suit).toLowerCase());
+      const hands = findOpponentWinningHands(heroCardStrings, boardCardStrings);
+      setOpponentWinningHands(hands);
+    } else {
+      setOpponentWinningHands([]);
+    }
+  }, [holeCards, communityCards]);
 
   const toggleSection = (sectionKey: string) => {
     const newExpanded = new Set(expandedSections);
@@ -32,7 +48,6 @@ const HandAnalysisDisplay = ({ holeCards, communityCards }: HandAnalysisDisplayP
     
     return (
       <div key={handAnalysis.handType} className={`${bgColor} rounded-lg mb-2 overflow-hidden`}>
-        {/* Header - Always visible and clickable */}
         <div 
           className="p-2 cursor-pointer hover:bg-black hover:bg-opacity-10 transition-colors"
           onClick={() => toggleSection(sectionKey)}
@@ -71,7 +86,6 @@ const HandAnalysisDisplay = ({ holeCards, communityCards }: HandAnalysisDisplayP
           </div>
         </div>
         
-        {/* Expandable content */}
         {isExpanded && (
           <div className="px-2 pb-2">
             {!handAnalysis.isMade && handAnalysis.requiredCards.length > 0 && (
@@ -94,14 +108,55 @@ const HandAnalysisDisplay = ({ holeCards, communityCards }: HandAnalysisDisplayP
     );
   };
 
+  const renderWinningHandsSection = () => (
+    <div className="bg-red-800 p-2 rounded-lg mb-2">
+      <div className="flex items-center space-x-2 mb-2">
+        <Eye className="h-3 w-3 text-red-300 flex-shrink-0" />
+        <p className="text-red-100 text-xs font-bold">
+          {opponentWinningHands.length} Opponent Hand{opponentWinningHands.length === 1 ? '' : 's'} Beat Your {analysis.currentPlayerHand.type}
+        </p>
+      </div>
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-2">
+        {opponentWinningHands.map((hand, index) => (
+          <div key={index} className="flex items-center justify-center space-x-1 bg-black bg-opacity-25 p-1 rounded-md">
+            <MiniCard card={hand[0]} />
+            <MiniCard card={hand[1]} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderNoThreatsMessage = () => {
+    if (communityCards.length === 5) {
+      if (opponentWinningHands.length === 0) {
+        return (
+          <div className="bg-emerald-700 p-2 rounded-lg text-center">
+            <p className="text-emerald-100 text-xs">
+              <strong>You have the nuts!</strong> No possible opponent hand can beat your {analysis.currentPlayerHand.type}.
+            </p>
+          </div>
+        );
+      }
+    }
+    // Default message if no draw threats are found pre-river
+    return (
+      <div className="bg-slate-700 p-2 rounded-lg text-center">
+        <p className="text-slate-300 text-xs">
+          No significant draw threats detected for the opponent.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
       <h3 className="text-lg font-bold text-center mb-3 text-white">Hand Analysis</h3>
       
       <Tabs defaultValue="player" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-2">
-          <TabsTrigger value="player" className="text-xs">Your Possibilities</TabsTrigger>
-          <TabsTrigger value="opponents" className="text-xs">Opponent Threats</TabsTrigger>
+          <TabsTrigger value="player" className="text-xs text-white !text-white">Your Possibilities</TabsTrigger>
+          <TabsTrigger value="opponents" className="text-xs text-white">Opponent Threats</TabsTrigger>
         </TabsList>
         
         <div className="mt-3">
@@ -131,17 +186,15 @@ const HandAnalysisDisplay = ({ holeCards, communityCards }: HandAnalysisDisplayP
                   </p>
                 </div>
               </div>
+
+              {communityCards.length === 5 && opponentWinningHands.length > 0 && renderWinningHandsSection()}
               
               {analysis.opponentThreats.length > 0 ? (
                 analysis.opponentThreats.map((handAnalysis, index) => 
                   renderHandAnalysis(handAnalysis, false, index)
                 )
               ) : (
-                <div className="bg-emerald-700 p-2 rounded-lg text-center">
-                  <p className="text-emerald-100 text-xs">
-                    <strong>Good news!</strong> No significant threats detected that beat your {analysis.currentPlayerHand.type}.
-                  </p>
-                </div>
+                renderNoThreatsMessage()
               )}
             </div>
           </TabsContent>

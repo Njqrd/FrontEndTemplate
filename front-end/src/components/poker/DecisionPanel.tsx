@@ -1,18 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useGame } from '@/contexts/GameContext';
 import { Decision } from '@/types';
 import FeedbackDialog from './FeedbackDialog';
 import { TrendingDown, Minus, TrendingUp } from 'lucide-react';
+import { analyzeDecision, DecisionAnalysis } from '@/utils/decision-engine';
+import { TIGHT_UTG_RAISE_RANGE, LOOSE_BUTTON_CALL_RANGE, STANDARD_3BET_RANGE } from '@/utils/hand-range';
+
+// Map villain types from scenarios to hand range strings
+const getRangeForVillainType = (villainType: string): string => {
+  switch (villainType) {
+    case 'Tight-Aggressive':
+      return TIGHT_UTG_RAISE_RANGE;
+    case 'Loose-Passive':
+      return LOOSE_BUTTON_CALL_RANGE;
+    default:
+      return STANDARD_3BET_RANGE; // A default fallback
+  }
+};
 
 const DecisionPanel: React.FC = () => {
   const { currentScenario, dispatch } = useGame();
-  const [feedback, setFeedback] = useState<{ isOpen: boolean; isCorrect: boolean } | null>(null);
+  const [feedback, setFeedback] = useState<{ isOpen: boolean; isCorrect: boolean; explanation: string } | null>(null);
+
+  // Use the decision engine to analyze the scenario in real-time
+  const analysis: DecisionAnalysis | null = useMemo(() => {
+    if (!currentScenario) return null;
+    
+    // For now, we assume a bet of 2.5BB into a 1.5BB pot if not specified.
+    // This can be made more dynamic later.
+    const callSize = currentScenario.potSize > 1.5 ? 2.5 : 0; 
+
+    return analyzeDecision(
+      currentScenario.holeCards,
+      currentScenario.communityCards,
+      currentScenario.potSize,
+      callSize,
+      getRangeForVillainType(currentScenario.villainType)
+    );
+  }, [currentScenario]);
 
   const handleDecision = (decision: Decision) => {
-    const isCorrect = decision === currentScenario.correctDecision;
+    if (!analysis) return;
+
+    const isCorrect = decision.toLowerCase() === analysis.decision.toLowerCase();
     dispatch({ type: 'SUBMIT_DECISION', payload: { correct: isCorrect } });
-    setFeedback({ isOpen: true, isCorrect });
+    setFeedback({ isOpen: true, isCorrect, explanation: analysis.reason });
   };
 
   const handleContinue = () => {
@@ -83,7 +116,7 @@ const DecisionPanel: React.FC = () => {
               {/* Call Button */}
               <button
                 onClick={() => handleDecision('call')}
-                disabled={feedback?.isOpen}
+                disabled={feedback?.isOpen || analysis?.decision.toLowerCase() === 'check'}
                 className="group relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 hover:from-blue-500 hover:via-blue-400 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3 rounded-xl shadow-xl border-2 border-blue-400 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
@@ -110,7 +143,7 @@ const DecisionPanel: React.FC = () => {
             {/* Subtle Action Hint */}
             <div className="mt-8 text-center">
               <p className="text-slate-400 text-sm italic">
-                Choose wisely. Your decision will be evaluated against optimal play.
+                {analysis ? `Optimal play: ${analysis.decision}` : 'Analyzing...'}
               </p>
             </div>
           </div>
@@ -125,7 +158,7 @@ const DecisionPanel: React.FC = () => {
         <FeedbackDialog
           isOpen={feedback.isOpen}
           isCorrect={feedback.isCorrect}
-          explanation={currentScenario.explanation}
+          explanation={feedback.explanation}
           onContinue={handleContinue}
         />
       )}
