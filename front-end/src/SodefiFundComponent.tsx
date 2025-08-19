@@ -217,7 +217,7 @@ const SodefiFundComponent = () => {
       </div>
       
         <div className="bg-brand-footer-bg text-white text-left text-left items-center px-14 py-4" style={{height: '80%'}}>
-          <p className="text-[10pt] font-light">Sodefi Management BV - www.sodefi.nl - gerardrump@sodefi.nl</p>
+          <p className="text-[10pt] font-light">Sodefi Management BV - www.sodefi.nl - gerard.rump@sodefi.nl</p>
           <p className="text-[10pt] font-light">Amsterdamseweg 206 - 1182 HL Amstelveen - The Netherlands</p>
    
       </div>
